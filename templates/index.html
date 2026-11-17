@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Signature & Document Verification System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-full flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-gradient-to-tr from-indigo-600 to-cyan-500 rounded-xl shadow-lg shadow-indigo-500/20 text-white">
+          <i data-lucide="shield-check" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            Digital Signature System
+            <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-medium">RSA-PSS &bull; ECDSA &bull; SHA-256</span>
+          </h1>
+          <p class="text-xs text-slate-400">Cryptographic Integrity, Authenticity & Non-Repudiation</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <a href="/api/download-sample" class="text-xs inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+          <i data-lucide="file-down" class="w-4 h-4"></i>
+          Sample Agreement.txt
+        </a>
+        <a href="https://github.com/814724104102-mcu/digital-signature-verification-system" target="_blank" class="text-xs inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-sm transition">
+          <i data-lucide="github" class="w-4 h-4"></i>
+          GitHub Repo
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- Tab Buttons -->
+    <div class="flex border-b border-slate-800 space-x-2 sm:space-x-4 overflow-x-auto pb-px">
+      <button onclick="switchTab('tab-keygen')" id="btn-tab-keygen" class="tab-btn active inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition">
+        <i data-lucide="key" class="w-4 h-4"></i>
+        Key Management
+      </button>
+      <button onclick="switchTab('tab-sign')" id="btn-tab-sign" class="tab-btn inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition">
+        <i data-lucide="file-signature" class="w-4 h-4"></i>
+        Sign Document
+      </button>
+      <button onclick="switchTab('tab-verify')" id="btn-tab-verify" class="tab-btn inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition">
+        <i data-lucide="badge-check" class="w-4 h-4"></i>
+        Verify Signature
+      </button>
+      <button onclick="switchTab('tab-tamper')" id="btn-tab-tamper" class="tab-btn inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition">
+        <i data-lucide="flask-conical" class="w-4 h-4"></i>
+        Tamper Resistance Lab
+      </button>
+      <button onclick="switchTab('tab-audit')" id="btn-tab-audit" class="tab-btn inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition">
+        <i data-lucide="history" class="w-4 h-4"></i>
+        Audit History
+      </button>
+    </div>
+
+    <!-- Alert / Toast Banner Container -->
+    <div id="toast-container" class="hidden rounded-xl p-4 transition-all"></div>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: KEY MANAGEMENT                      -->
+    <!-- ========================================== -->
+    <div id="tab-keygen" class="tab-panel space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Controls Column -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+          <div class="flex items-center space-x-3">
+            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+              <i data-lucide="cpu" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-semibold text-white">Generate Key Pair</h2>
+              <p class="text-xs text-slate-400">Create cryptographic asymmetric keys</p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1.5">Asymmetric Algorithm</label>
+              <select id="keygen-algo" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="RSA-2048">RSA (2048-bit) - Standard</option>
+                <option value="RSA-4096">RSA (4096-bit) - High Security</option>
+                <option value="ECDSA-SECP256R1">ECDSA (NIST P-256 / secp256r1)</option>
+                <option value="ECDSA-SECP256K1">ECDSA (Koblitz / secp256k1)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1.5">Passphrase Protection (Optional)</label>
+              <input type="password" id="keygen-passphrase" placeholder="Leave blank for unencrypted PEM" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <p class="text-[11px] text-slate-500 mt-1">Encrypts the private key with AES-256 (PKCS#8).</p>
+            </div>
+
+            <button id="btn-generate-keys" onclick="generateKeys()" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              Generate New Keys
+            </button>
+          </div>
+
+          <div class="border-t border-slate-800 pt-4 text-xs text-slate-400 space-y-2">
+            <div class="flex items-start gap-2">
+              <i data-lucide="info" class="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5"></i>
+              <span><strong>Private Key</strong> must be kept strictly secret by the document signer.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <i data-lucide="shield" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+              <span><strong>Public Key</strong> can be openly shared to verify signatures.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generated Keys Display Column -->
+        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+              <i data-lucide="fingerprint" class="w-4 h-4 text-indigo-400"></i>
+              Active Cryptographic Keys
+            </h3>
+            <span id="active-algo-badge" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">No keys generated yet</span>
+          </div>
+
+          <!-- Key Fingerprint Card -->
+          <div id="key-fingerprint-box" class="hidden bg-slate-950/70 border border-slate-800/80 rounded-xl p-3 space-y-1">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>SHA-256 Public Key Fingerprint</span>
+              <button onclick="copyFingerprint()" class="text-indigo-400 hover:text-indigo-300 text-[11px] inline-flex items-center gap-1">
+                <i data-lucide="copy" class="w-3 h-3"></i> Copy
+              </button>
+            </div>
+            <div id="display-fingerprint" class="font-mono text-xs text-emerald-400 break-all select-all"></div>
+          </div>
+
+          <!-- Tabs for Private vs Public PEM -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex space-x-2">
+                <button onclick="toggleKeyView('public')" id="btn-view-pub" class="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium">Public Key (PEM)</button>
+                <button onclick="toggleKeyView('private')" id="btn-view-priv" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 font-medium">Private Key (PEM)</button>
+              </div>
+              <div class="flex space-x-2">
+                <button onclick="copyCurrentKey()" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+                </button>
+                <button onclick="downloadCurrentKey()" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i> Download PEM
+                </button>
+              </div>
+            </div>
+
+            <textarea id="display-key-pem" readonly rows="11" placeholder="Generate keys to view PEM format..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 font-mono text-xs text-slate-300 focus:outline-none"></textarea>
+          </div>
+
+          <!-- Quick transfer buttons -->
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button onclick="loadGeneratedKeyIntoSigner()" class="text-xs px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 inline-flex items-center gap-1.5 transition">
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              Use Private Key in "Sign Document"
+            </button>
+            <button onclick="loadGeneratedKeyIntoVerifier()" class="text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5 transition">
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              Use Public Key in "Verify Signature"
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: SIGN DOCUMENT                       -->
+    <!-- ========================================== -->
+    <div id="tab-sign" class="tab-panel hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Input Column -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+          <div class="flex items-center space-x-3">
+            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+              <i data-lucide="file-signature" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-semibold text-white">Sign a Document</h2>
+              <p class="text-xs text-slate-400">Compute SHA-256 digest and encrypt with private key</p>
+            </div>
+          </div>
+
+          <!-- Document Upload Box -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-slate-300">1. Select Document</label>
+            <div id="drop-zone-sign-doc" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-5 text-center cursor-pointer transition bg-slate-950/40">
+              <input type="file" id="sign-doc-input" class="hidden" onchange="handleSignDocSelect(event)">
+              <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+              <p id="sign-doc-label" class="text-xs text-slate-300 font-medium">Click to upload document or drag & drop</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">Supports PDF, DOCX, TXT, images, and any file</p>
+            </div>
+          </div>
+
+          <!-- Signer Name & Algorithm -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Signer Identity</label>
+              <input type="text" id="signer-identity" value="Alice (Authorized Signer)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Hash Algorithm</label>
+              <select id="sign-hash-algo" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <option value="SHA-256">SHA-256 (Recommended)</option>
+                <option value="SHA-512">SHA-512</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Private Key Input -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-medium text-slate-300">2. Signer Private Key (PEM)</label>
+              <button onclick="document.getElementById('sign-key-file').click()" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                <i data-lucide="upload" class="w-3 h-3"></i> Upload .pem file
+              </button>
+              <input type="file" id="sign-key-file" class="hidden" onchange="handleSignKeyFile(event)">
+            </div>
+            <textarea id="sign-private-key" rows="6" placeholder="Paste -----BEGIN PRIVATE KEY----- here or generate in Key Management tab..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
+          </div>
+
+          <!-- Passphrase if encrypted -->
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Passphrase (if key is encrypted)</label>
+            <input type="password" id="sign-key-passphrase" placeholder="Key passphrase..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+          </div>
+
+          <button id="btn-execute-sign" onclick="signDocument()" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition">
+            <i data-lucide="lock" class="w-4 h-4"></i>
+            Sign Document
+          </button>
+        </div>
+
+        <!-- Signing Results Column -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+              <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-400"></i>
+              Signature & Audit Output
+            </h3>
+            <span id="sign-status-badge" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Awaiting signature</span>
+          </div>
+
+          <!-- Document Digest Box -->
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3 space-y-1">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Document SHA-256 Digest</span>
+            <div id="sign-output-hash" class="font-mono text-xs text-slate-400 break-all select-all">None</div>
+          </div>
+
+          <!-- Signature Output -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Base64 Signature Output</span>
+              <button onclick="copyToClipboard('sign-output-sig')" class="text-indigo-400 hover:text-indigo-300 text-xs flex items-center gap-1">
+                <i data-lucide="copy" class="w-3 h-3"></i> Copy
+              </button>
+            </div>
+            <textarea id="sign-output-sig" readonly rows="4" placeholder="Signature output will appear here..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-indigo-300 focus:outline-none"></textarea>
+          </div>
+
+          <!-- Audit Manifest JSON -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Complete Audit Manifest (JSON)</span>
+              <button onclick="copyToClipboard('sign-output-manifest')" class="text-indigo-400 hover:text-indigo-300 text-xs flex items-center gap-1">
+                <i data-lucide="copy" class="w-3 h-3"></i> Copy
+              </button>
+            </div>
+            <textarea id="sign-output-manifest" readonly rows="6" placeholder="Verification manifest will appear here..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-emerald-300 focus:outline-none"></textarea>
+          </div>
+
+          <!-- Download Action Buttons -->
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button id="btn-download-sig" disabled onclick="downloadSignature()" class="text-xs px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 inline-flex items-center gap-1.5 transition disabled:opacity-40">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              Download .sig
+            </button>
+            <button id="btn-download-manifest" disabled onclick="downloadManifest()" class="text-xs px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 inline-flex items-center gap-1.5 transition disabled:opacity-40">
+              <i data-lucide="file-json" class="w-3.5 h-3.5"></i>
+              Download Manifest (.json)
+            </button>
+            <button id="btn-send-to-verifier" disabled onclick="sendSignOutputToVerifier()" class="text-xs px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium inline-flex items-center gap-1.5 transition disabled:opacity-40 shadow-sm">
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              Send to Verifier
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: VERIFY SIGNATURE                   -->
+    <!-- ========================================== -->
+    <div id="tab-verify" class="tab-panel hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Input Column -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+          <div class="flex items-center space-x-3">
+            <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+              <i data-lucide="shield-alert" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-semibold text-white">Verify Document Signature</h2>
+              <p class="text-xs text-slate-400">Check for tampering and confirm signer identity</p>
+            </div>
+          </div>
+
+          <!-- Document Upload -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-medium text-slate-300">1. Received Document</label>
+            <div id="drop-zone-verify-doc" class="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-950/40">
+              <input type="file" id="verify-doc-input" class="hidden" onchange="handleVerifyDocSelect(event)">
+              <i data-lucide="file-text" class="w-7 h-7 text-slate-400 mx-auto mb-1.5"></i>
+              <p id="verify-doc-label" class="text-xs text-slate-300 font-medium">Select document to verify</p>
+            </div>
+          </div>
+
+          <!-- Public Key Input -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-medium text-slate-300">2. Signer Public Key (PEM)</label>
+              <button onclick="document.getElementById('verify-key-file').click()" class="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
+                <i data-lucide="upload" class="w-3 h-3"></i> Upload .pem
+              </button>
+              <input type="file" id="verify-key-file" class="hidden" onchange="handleVerifyKeyFile(event)">
+            </div>
+            <textarea id="verify-public-key" rows="5" placeholder="Paste -----BEGIN PUBLIC KEY----- here..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"></textarea>
+          </div>
+
+          <!-- Signature or Manifest Input -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-medium text-slate-300">3. Digital Signature (Base64 or Manifest JSON)</label>
+              <button onclick="document.getElementById('verify-sig-file').click()" class="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
+                <i data-lucide="upload" class="w-3 h-3"></i> Upload .sig / .json
+              </button>
+              <input type="file" id="verify-sig-file" class="hidden" onchange="handleVerifySigFile(event)">
+            </div>
+            <textarea id="verify-signature-input" rows="4" placeholder="Paste signature Base64 or full manifest JSON here..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"></textarea>
+          </div>
+
+          <button id="btn-execute-verify" onclick="verifyDocument()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition">
+            <i data-lucide="badge-check" class="w-4 h-4"></i>
+            Verify Cryptographic Signature
+          </button>
+        </div>
+
+        <!-- Verification Results Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+              <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
+              Verification Certificate
+            </h3>
+            <span id="verify-result-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 font-medium">Ready</span>
+          </div>
+
+          <!-- Status Hero Banner -->
+          <div id="verify-hero" class="rounded-xl border p-5 transition-all bg-slate-950/60 border-slate-800">
+            <div class="flex items-start space-x-3">
+              <div id="verify-hero-icon" class="p-2.5 rounded-xl bg-slate-800 text-slate-400">
+                <i data-lucide="shield-question" class="w-6 h-6"></i>
+              </div>
+              <div class="space-y-1">
+                <h4 id="verify-hero-title" class="text-sm font-bold text-slate-200">Awaiting Verification</h4>
+                <p id="verify-hero-desc" class="text-xs text-slate-400 leading-relaxed">Submit the document, public key, and signature to execute mathematical validation.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Audit Metadata Table -->
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-3 text-xs">
+            <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+              <span class="text-slate-400">Computed Document Digest:</span>
+              <span id="verify-digest" class="font-mono text-[11px] text-slate-300 select-all">-</span>
+            </div>
+            <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+              <span class="text-slate-400">Algorithm:</span>
+              <span id="verify-algo" class="font-mono text-slate-300">-</span>
+            </div>
+            <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+              <span class="text-slate-400">Signer Key Fingerprint:</span>
+              <span id="verify-fingerprint" class="font-mono text-[11px] text-slate-300 select-all">-</span>
+            </div>
+            <div class="flex justify-between items-center py-1">
+              <span class="text-slate-400">Timestamp:</span>
+              <span id="verify-time" class="font-mono text-slate-300">-</span>
+            </div>
+          </div>
+
+          <!-- Tamper Warning Box (Hidden unless tampered) -->
+          <div id="tamper-alert-box" class="hidden bg-rose-950/40 border border-rose-500/50 rounded-xl p-4 text-xs space-y-2">
+            <div class="flex items-center gap-2 font-bold text-rose-400">
+              <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+              INTEGRITY VIOLATION DETECTED
+            </div>
+            <p class="text-rose-200 text-[11px] leading-relaxed">
+              The cryptographic signature does not correspond to the document content. Either:
+              <br>• The document was modified after signing (tampered).
+              <br>• The wrong public key was provided.
+              <br>• The signature payload is corrupt or forged.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: TAMPER RESISTANCE LAB               -->
+    <!-- ========================================== -->
+    <div id="tab-tamper" class="tab-panel hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+            <i data-lucide="flask-conical" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-semibold text-white">Tamper Resistance Sandbox</h2>
+            <p class="text-xs text-slate-400">Live proof: witness how modifying a single byte completely invalidates cryptographic verification</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Setup Column -->
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Target Document</label>
+              <input type="file" id="tamper-doc-input" class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700">
+              <p class="text-[11px] text-slate-500 mt-1">Leave empty to use built-in sample contract text.</p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Signer Private Key (PEM)</label>
+              <textarea id="tamper-private-key" rows="5" placeholder="Private key PEM... (Click 'Use Generated Keys' to autofill)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-slate-300 focus:outline-none"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Tamper Position (Byte Index)</label>
+              <input type="number" id="tamper-pos" value="0" min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200">
+            </div>
+
+            <button onclick="runTamperExperiment()" class="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-600/20 transition">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+              Execute Tamper Experiment
+            </button>
+          </div>
+
+          <!-- Comparative Display -->
+          <div class="lg:col-span-2 space-y-4">
+            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+              <i data-lucide="git-compare" class="w-4 h-4 text-indigo-400"></i>
+              Original vs Tampered State
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Original Document Card -->
+              <div class="bg-slate-950 border border-emerald-500/40 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    Original Document
+                  </span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">Authentic</span>
+                </div>
+                <div class="space-y-1">
+                  <span class="text-[10px] text-slate-400 uppercase">SHA-256 Digest</span>
+                  <div id="tamper-orig-hash" class="font-mono text-[10px] text-slate-300 break-all">-</div>
+                </div>
+                <div class="space-y-1">
+                  <span class="text-[10px] text-slate-400 uppercase">Verification Status</span>
+                  <div id="tamper-orig-status" class="text-xs font-semibold text-emerald-400">Awaiting test</div>
+                </div>
+              </div>
+
+              <!-- Tampered Document Card -->
+              <div class="bg-slate-950 border border-rose-500/40 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-rose-400 flex items-center gap-1.5">
+                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                    Tampered Document
+                  </span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400">Tampered (1 Byte Changed)</span>
+                </div>
+                <div class="space-y-1">
+                  <span class="text-[10px] text-slate-400 uppercase">SHA-256 Digest (Avalanche Effect)</span>
+                  <div id="tamper-mod-hash" class="font-mono text-[10px] text-rose-300 break-all">-</div>
+                </div>
+                <div class="space-y-1">
+                  <span class="text-[10px] text-slate-400 uppercase">Verification Status</span>
+                  <div id="tamper-mod-status" class="text-xs font-semibold text-rose-400">Awaiting test</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mathematical Proof Explanation -->
+            <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 text-xs space-y-2">
+              <h4 class="font-semibold text-indigo-400 flex items-center gap-1.5">
+                <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                Cryptographic Avalanche Effect & Non-Repudiation Principle
+              </h4>
+              <p class="text-slate-400 text-[11px] leading-relaxed">
+                When a single bit in a document is altered (even whitespace or punctuation), the SHA-256 cryptographic hash changes completely and unpredictably (known as the <strong>Avalanche Effect</strong>). Because the digital signature encrypts the original hash using the signer's private key, the decrypted hash from the public key will no longer match the recalculated document hash, causing instant mathematical rejection.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: AUDIT LOGS & HISTORY                -->
+    <!-- ========================================== -->
+    <div id="tab-audit" class="tab-panel hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center space-x-3">
+            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+              <i data-lucide="history" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-semibold text-white">System Audit Log</h2>
+              <p class="text-xs text-slate-400">Local session activity trail of signing and verification operations</p>
+            </div>
+          </div>
+          <button onclick="clearAuditLogs()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear Log
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950/70 text-slate-400 border-b border-slate-800 font-medium">
+              <tr>
+                <th class="p-3">Time (UTC)</th>
+                <th class="p-3">Action</th>
+                <th class="p-3">Document / Subject</th>
+                <th class="p-3">Digest (SHA-256)</th>
+                <th class="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="audit-table-body" class="divide-y divide-slate-800/60 text-slate-300 font-mono text-[11px]">
+              <tr>
+                <td colspan="5" class="p-4 text-center text-slate-500 font-sans text-xs">No audit events recorded yet. Perform key generation, signing, or verification to view logs.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500 space-y-1">
+    <p>Digital Signature & Document Verification System &bull; Cryptography Project</p>
+    <p class="text-[11px] text-slate-600">Built with Python, Cryptography (RSA-PSS & ECDSA), and Flask</p>
+  </footer>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

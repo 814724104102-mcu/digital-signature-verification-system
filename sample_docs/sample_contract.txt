@@ -1,0 +1,25 @@
+================================================================================
+CONFIDENTIAL MUTUAL NON-DISCLOSURE & SERVICE LEVEL AGREEMENT
+================================================================================
+Agreement Date: November 17, 2026
+Document ID:    SLA-2026-X99201
+
+PARTIES:
+1. Party A: Quantum Secure Dynamics Inc. (Disclosing Party)
+2. Party B: Apex Global Solutions Corp. (Receiving Party)
+
+TERMS & CONDITIONS:
+1. Scope of Agreement: Both parties agree to collaborate on the deployment of
+   cryptographically verifiable digital signature infrastructures.
+2. Confidentiality: Neither party shall disclose proprietary algorithms, private
+   keys, or operational parameters to third parties without prior written consent.
+3. Integrity Assurance: All transmitted artifacts, contract modifications, and
+   deliverables must be signed using SHA-256 and RSA-PSS/ECDSA digital signatures.
+4. Tampering & Fraud Policy: Any modification of even a single byte within this
+   record constitutes a material breach and immediately invalidates the signature.
+
+Signed and agreed by authorized representatives:
+Authorized Officer: Dr. Elena Vance
+Role: Chief Information Security Officer (CISO)
+Status: Pending Signature & Verification
+================================================================================
